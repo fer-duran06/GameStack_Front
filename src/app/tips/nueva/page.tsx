@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import { tipsService } from '@/services/tips.service';
+import { AlertTriangle, Lightbulb } from 'lucide-react';
 
 interface RegisteredGame { id: number; name: string; image_url: string; }
 
@@ -69,8 +70,8 @@ export default function NuevoTipPage() {
             <div>
               <label style={lbl}>Juego *</label>
               {games.length === 0 ? (
-                <div style={{ backgroundColor: '#161B2E', border: '1.5px solid #FCD34D44', borderRadius: '8px', padding: '12px 14px', fontSize: '12px', color: '#FCD34D' }}>
-                  ⚠️ Sin juegos. Ve a{' '}
+                <div style={{ backgroundColor: '#161B2E', border: '1.5px solid #FCD34D44', borderRadius: '8px', padding: '12px 14px', fontSize: '12px', color: '#FCD34D', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertTriangle size={13} /> Sin juegos. Ve a{' '}
                   <span onClick={() => router.push('/juegos')} style={{ textDecoration: 'underline', cursor: 'pointer' }}>Juegos</span> primero.
                 </div>
               ) : (
@@ -106,15 +107,15 @@ export default function NuevoTipPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', padding: '16px', backgroundColor: '#161B2E', borderRadius: '8px', border: '1px solid #1E2540' }}>
               <div><label style={lbl}>Campeón * (en inglés)</label><input value={form.champion} onChange={(e) => set('champion', e.target.value)} placeholder="Ej: Jinx" style={inp} /></div>
               <div><label style={lbl}>Rol</label><input value={form.role} onChange={(e) => set('role', e.target.value)} placeholder="Ej: ADC" style={inp} /></div>
-              <p style={{ gridColumn: '1/-1', fontSize: '11px', color: '#FCD34D' }}>⚠️ El nombre debe ser exactamente como aparece en el juego</p>
+              <p style={{ gridColumn: '1/-1', fontSize: '11px', color: '#FCD34D', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={11} /> El nombre debe ser exactamente como aparece en el juego</p>
             </div>
           )}
 
           {error && <p style={{ fontSize: '12px', color: '#F87171' }}>{error}</p>}
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
             <button onClick={() => router.back()} style={{ padding: '10px 20px', backgroundColor: 'transparent', border: '1px solid #1E2540', borderRadius: '8px', color: '#8892A4', fontSize: '13px', cursor: 'pointer' }}>Cancelar</button>
-            <button onClick={handleSubmit} disabled={loading || games.length === 0} style={{ padding: '10px 20px', backgroundColor: '#7C3AED', border: 'none', borderRadius: '8px', color: '#FFFFFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: games.length === 0 ? 0.5 : 1 }}>
-              {loading ? 'Publicando...' : '💡 Publicar tip'}
+            <button onClick={handleSubmit} disabled={loading || games.length === 0} style={{ padding: '10px 20px', backgroundColor: '#7C3AED', border: 'none', borderRadius: '8px', color: '#FFFFFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: games.length === 0 ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {loading ? 'Publicando...' : <><Lightbulb size={14} /> Publicar tip</>}
             </button>
           </div>
         </div>

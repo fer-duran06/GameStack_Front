@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { rankingsService } from '@/services/rankings.service';
 import { RankingEntry } from '@/types/ranking.types';
+import { Calendar, BarChart2, Medal } from 'lucide-react';
+
+const medal = (pos: number) => {
+  if (pos === 1) return <Medal size={16} color="#FCD34D" />;
+  if (pos === 2) return <Medal size={16} color="#9CA3AF" />;
+  if (pos === 3) return <Medal size={16} color="#D97706" />;
+  return <span style={{ fontSize: '14px', fontWeight: '800', color: '#8892A4' }}>#{pos}</span>;
+};
 
 export default function RankingsPage() {
   const [leaderboard, setLeaderboard] = useState<RankingEntry[]>([]);
@@ -27,7 +35,6 @@ export default function RankingsPage() {
 
   useEffect(() => { fetchRankings(); }, [period, gameId]);
 
-  const medal = (pos: number) => pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `#${pos}`;
   const posColor = (pos: number) => pos === 1 ? '#FCD34D' : pos === 2 ? '#9CA3AF' : pos === 3 ? '#D97706' : '#8892A4';
 
   return (
@@ -39,7 +46,7 @@ export default function RankingsPage() {
 
       {/* Banner periodo */}
       <div style={{ backgroundColor: '#7C3AED22', border: '1px solid #7C3AED44', borderRadius: '12px', padding: '16px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <span style={{ fontSize: '18px' }}>📅</span>
+        <Calendar size={18} color="#A78BFA" />
         <div>
           <p style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Período Actual</p>
           <p style={{ fontSize: '12px', color: '#A78BFA', margin: '2px 0 0' }}>
@@ -77,14 +84,14 @@ export default function RankingsPage() {
 
         {!loading && !error && leaderboard.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px', color: '#8892A4' }}>
-            <div style={{ fontSize: '36px', marginBottom: '12px' }}>📊</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}><BarChart2 size={36} color="#4B5563" /></div>
             <p>No hay datos de ranking para este juego y período</p>
           </div>
         )}
 
         {leaderboard.map((entry, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: '70px 1fr 120px 100px 80px', padding: '14px 20px', borderTop: '1px solid #1E2540', alignItems: 'center', backgroundColor: entry.live_position <= 3 ? '#7C3AED08' : 'transparent' }}>
-            <span style={{ fontWeight: '800', color: posColor(entry.live_position), fontSize: '14px' }}>{medal(entry.live_position)}</span>
+            <span style={{ fontWeight: '800', color: posColor(entry.live_position), fontSize: '14px', display: 'flex', alignItems: 'center' }}>{medal(entry.live_position)}</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: '#FFFFFF' }}>
                 {entry.player_name.charAt(0).toUpperCase()}

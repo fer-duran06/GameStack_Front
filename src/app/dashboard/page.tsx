@@ -6,6 +6,7 @@ import { matchesService } from '@/services/matches.service';
 import { useEffect, useState } from 'react';
 import { Match } from '@/types/match.types';
 import Link from 'next/link';
+import { Zap, Users, Trophy, TrendingUp, Swords } from 'lucide-react';
 
 const STATUS_LABEL: Record<string, string>  = { open: 'Esperando', scheduled: 'Programada', in_progress: 'En progreso', finished: 'Finalizada' };
 const STATUS_COLOR: Record<string, string>  = { open: '#FCD34D',   scheduled: '#60A5FA',    in_progress: '#4ADE80',      finished: '#9CA3AF'    };
@@ -32,13 +33,13 @@ export default function DashboardPage() {
       {/* Stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '28px' }}>
         {[
-          { icon: '⚡', label: 'Partidas Activas',  value: matches.length.toString(), color: '#7C3AED' },
-          { icon: '👥', label: 'Jugadores Online',   value: '—',                       color: '#2563EB' },
-          { icon: '🏆', label: 'Torneos Activos',   value: '—',                       color: '#D97706' },
-          { icon: '📈', label: 'Tips Compartidos',  value: '—',                       color: '#059669' },
+          { icon: <Zap size={22} color="#A78BFA" />,        label: 'Partidas Activas',  value: matches.length.toString(), color: '#7C3AED' },
+          { icon: <Users size={22} color="#60A5FA" />,       label: 'Jugadores Online',   value: '—',                       color: '#2563EB' },
+          { icon: <Trophy size={22} color="#FCD34D" />,      label: 'Torneos Activos',   value: '—',                       color: '#D97706' },
+          { icon: <TrendingUp size={22} color="#4ADE80" />,  label: 'Tips Compartidos',  value: '—',                       color: '#059669' },
         ].map((s, i) => (
           <div key={i} style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', padding: '20px' }}>
-            <span style={{ fontSize: '22px', display: 'block', marginBottom: '10px' }}>{s.icon}</span>
+            <span style={{ display: 'block', marginBottom: '10px' }}>{s.icon}</span>
             <p style={{ fontSize: '28px', fontWeight: '800', color: s.color, marginBottom: '4px' }}>{s.value}</p>
             <p style={{ fontSize: '12px', color: '#8892A4' }}>{s.label}</p>
           </div>
@@ -58,7 +59,9 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {matches.map((m) => (
               <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px', backgroundColor: '#161B2E', borderRadius: '8px' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#7C3AED22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>⚔️</div>
+                <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#7C3AED22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Swords size={16} color="#A78BFA" />
+                </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>
                     <span style={{ color: '#A78BFA' }}>{m.creator_name}</span> creó partida de{' '}

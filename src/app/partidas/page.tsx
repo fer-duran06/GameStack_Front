@@ -5,6 +5,7 @@ import Link from 'next/link';
 import MainLayout from '@/components/layout/MainLayout';
 import { matchesService } from '@/services/matches.service';
 import { Match } from '@/types/match.types';
+import { Swords, Calendar, Users, Eye } from 'lucide-react';
 
 const STATUS_LABEL: Record<string, string> = { open: 'Esperando jugadores', scheduled: 'Programada', in_progress: 'En progreso', finished: 'Finalizada' };
 const STATUS_COLOR: Record<string, string> = { open: '#FCD34D', scheduled: '#60A5FA', in_progress: '#4ADE80', finished: '#9CA3AF' };
@@ -47,7 +48,7 @@ export default function PartidasPage() {
         <p style={{ color: '#8892A4', textAlign: 'center', padding: '40px' }}>Cargando partidas...</p>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px', color: '#8892A4' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>⚔️</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}><Swords size={40} color="#4B5563" /></div>
           <p>No hay partidas disponibles</p>
         </div>
       ) : (
@@ -64,8 +65,8 @@ export default function PartidasPage() {
                 <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF', marginBottom: '4px' }}>{m.title}</h3>
                 <p style={{ fontSize: '12px', color: '#8892A4', marginBottom: '14px' }}>Host: {m.creator_name}</p>
                 <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#8892A4', marginBottom: '16px' }}>
-                  {m.scheduled_at && <span>📅 {new Date(m.scheduled_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>}
-                  <span>👥 {m.max_players} jugadores máx</span>
+                  {m.scheduled_at && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={12} /> {new Date(m.scheduled_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={12} /> {m.max_players} jugadores máx</span>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {m.status === 'open' && (
@@ -73,8 +74,8 @@ export default function PartidasPage() {
                       Unirse
                     </button>
                   )}
-                  <button style={{ flex: 1, padding: '9px 0', backgroundColor: 'transparent', border: '1px solid #1E2540', borderRadius: '8px', color: '#8892A4', fontSize: '12px', cursor: 'pointer' }}>
-                    👁 Ver detalles
+                  <button style={{ flex: 1, padding: '9px 0', backgroundColor: 'transparent', border: '1px solid #1E2540', borderRadius: '8px', color: '#8892A4', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <Eye size={13} /> Ver detalles
                   </button>
                 </div>
               </div>

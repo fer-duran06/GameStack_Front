@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import MainLayout from '@/components/layout/MainLayout';
+import { ThumbsUp, MessageCircle, Bookmark, Lightbulb, Globe } from 'lucide-react';
 
 interface MyTip {
   id: number;
@@ -56,8 +57,8 @@ export default function TipsPage() {
       {/* ── Mis tips publicados ── */}
       {myTips.length > 0 && (
         <div style={{ marginBottom: '32px' }}>
-          <p style={{ fontSize: '13px', fontWeight: '600', color: '#A78BFA', marginBottom: '14px' }}>
-            💡 Mis tips publicados ({myTips.length})
+          <p style={{ fontSize: '13px', fontWeight: '600', color: '#A78BFA', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Lightbulb size={13} /> Mis tips publicados ({myTips.length})
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {myTips.map((tip) => (
@@ -76,7 +77,7 @@ export default function TipsPage() {
                 <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#FFFFFF', marginBottom: '8px' }}>{tip.title}</h3>
                 <p style={{ fontSize: '12px', color: '#8892A4', lineHeight: 1.6, marginBottom: '12px' }}>{tip.content}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#8892A4', borderTop: '1px solid #1E2540', paddingTop: '10px' }}>
-                  <span>👍 {tip.likes_count}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><ThumbsUp size={12} /> {tip.likes_count}</span>
                   <span style={{ fontSize: '11px', color: '#A78BFA' }}>ID: {tip.id}</span>
                 </div>
               </div>
@@ -87,8 +88,8 @@ export default function TipsPage() {
 
       {/* ── Tips de la comunidad (mock) ── */}
       <div>
-        <p style={{ fontSize: '13px', fontWeight: '600', color: '#8892A4', marginBottom: '14px' }}>
-          🌎 Tips de la comunidad
+        <p style={{ fontSize: '13px', fontWeight: '600', color: '#8892A4', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Globe size={13} /> Tips de la comunidad
         </p>
 
         {/* Filtros */}
@@ -116,9 +117,9 @@ export default function TipsPage() {
               <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#FFFFFF', marginBottom: '8px' }}>{tip.title}</h3>
               <p style={{ fontSize: '12px', color: '#8892A4', lineHeight: 1.6, marginBottom: '14px' }}>{tip.content}</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#8892A4' }}>
-                <span style={{ cursor: 'pointer' }}>👍 {tip.likes}</span>
-                <span>💬 {tip.comments}</span>
-                <span style={{ marginLeft: 'auto', cursor: 'pointer' }}>🔖</span>
+                <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><ThumbsUp size={12} /> {tip.likes}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MessageCircle size={12} /> {tip.comments}</span>
+                <span style={{ marginLeft: 'auto', cursor: 'pointer' }}><Bookmark size={12} /></span>
               </div>
             </div>
           ))}

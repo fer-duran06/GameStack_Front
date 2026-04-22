@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { gamesService } from '@/services/games.service';
 import { RAWGGame } from '@/types/game.types';
+import { Search, X, Gamepad2, Check } from 'lucide-react';
 
 interface RegisteredGame {
   id: number;
@@ -77,8 +78,8 @@ export default function JuegosPage() {
 
       {/* ── Buscador siempre visible ── */}
       <div style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
-        <p style={{ fontSize: '13px', color: '#8892A4', marginBottom: '12px' }}>
-          🔍 Busca un juego en RAWG y regístralo en la plataforma
+        <p style={{ fontSize: '13px', color: '#8892A4', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Search size={13} /> Busca un juego en RAWG y regístralo en la plataforma
         </p>
         <div style={{ display: 'flex', gap: '10px' }}>
           <input value={query} onChange={(e) => setQuery(e.target.value)}
@@ -91,8 +92,8 @@ export default function JuegosPage() {
           </button>
           {searched && (
             <button onClick={handleClearSearch}
-              style={{ padding: '10px 16px', backgroundColor: 'transparent', border: '1px solid #1E2540', borderRadius: '8px', color: '#8892A4', fontSize: '13px', cursor: 'pointer' }}>
-              ✕ Limpiar
+              style={{ padding: '10px 16px', backgroundColor: 'transparent', border: '1px solid #1E2540', borderRadius: '8px', color: '#8892A4', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <X size={14} /> Limpiar
             </button>
           )}
         </div>
@@ -124,13 +125,13 @@ export default function JuegosPage() {
                 return (
                   <div key={game.rawg_id} style={{ backgroundColor: '#0F1424', border: `1px solid ${already ? '#16a34a' : '#1E2540'}`, borderRadius: '12px', overflow: 'hidden' }}>
                     <div style={{ height: '140px', backgroundImage: game.image_url ? `url(${game.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#161B2E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {!game.image_url && <span style={{ fontSize: '36px' }}>🎮</span>}
+                      {!game.image_url && <Gamepad2 size={36} color="#4B5563" />}
                     </div>
                     <div style={{ padding: '14px' }}>
                       <p style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', marginBottom: '12px' }}>{game.name}</p>
                       {already ? (
-                        <div style={{ width: '100%', padding: '8px 0', backgroundColor: '#16a34a22', border: '1px solid #16a34a', borderRadius: '8px', color: '#4ADE80', fontSize: '12px', fontWeight: '600', textAlign: 'center' }}>
-                          ✓ Ya registrado — ID: {registeredId}
+                        <div style={{ width: '100%', padding: '8px 0', backgroundColor: '#16a34a22', border: '1px solid #16a34a', borderRadius: '8px', color: '#4ADE80', fontSize: '12px', fontWeight: '600', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                          <Check size={13} /> Ya registrado — ID: {registeredId}
                         </div>
                       ) : (
                         <button onClick={() => handleRegister(game)}
@@ -152,7 +153,7 @@ export default function JuegosPage() {
         <>
           {registeredGames.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: '#8892A4' }}>
-              <div style={{ fontSize: '56px', marginBottom: '16px' }}>🎮</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}><Gamepad2 size={56} color="#4B5563" /></div>
               <p style={{ fontSize: '16px', fontWeight: '600', color: '#E2E8F0', marginBottom: '8px' }}>No tienes juegos registrados aún</p>
               <p style={{ fontSize: '13px' }}>Busca un juego arriba y regístralo para crear partidas y torneos</p>
             </div>
@@ -165,7 +166,7 @@ export default function JuegosPage() {
                 {registeredGames.map((game) => (
                   <div key={game.id} style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', overflow: 'hidden' }}>
                     <div style={{ height: '140px', backgroundImage: game.image_url ? `url(${game.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#161B2E', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                      {!game.image_url && <span style={{ fontSize: '36px' }}>🎮</span>}
+                      {!game.image_url && <Gamepad2 size={36} color="#4B5563" />}
                       <span style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#7C3AED', color: '#FFFFFF', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' }}>
                         ID: {game.id}
                       </span>
@@ -177,8 +178,8 @@ export default function JuegosPage() {
                           Usa ID <span style={{ color: '#A78BFA', fontWeight: '700' }}>{game.id}</span> en partidas y torneos
                         </span>
                         <button onClick={() => handleRemove(game.id)}
-                          style={{ background: 'none', border: 'none', color: '#F87171', fontSize: '12px', cursor: 'pointer' }}>
-                          ✕
+                          style={{ background: 'none', border: 'none', color: '#F87171', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                          <X size={14} />
                         </button>
                       </div>
                     </div>

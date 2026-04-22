@@ -3,15 +3,16 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { Home, Gamepad2, Swords, Trophy, Lightbulb, BarChart2, User } from 'lucide-react';
 
 const navItems = [
-  { href: '/dashboard',  label: 'Inicio',            icon: '🏠' },
-  { href: '/juegos',     label: 'Juegos',             icon: '🎮' },
-  { href: '/partidas',   label: 'Partidas',           icon: '⚔️' },
-  { href: '/torneos',    label: 'Torneos',            icon: '🏆' },
-  { href: '/tips',       label: 'Tips & Estrategias', icon: '💡' },
-  { href: '/rankings',   label: 'Rankings',           icon: '📊' },
-  { href: '/perfil',     label: 'Perfil',             icon: '👤' },
+  { href: '/dashboard',  label: 'Inicio',            icon: Home },
+  { href: '/juegos',     label: 'Juegos',             icon: Gamepad2 },
+  { href: '/partidas',   label: 'Partidas',           icon: Swords },
+  { href: '/torneos',    label: 'Torneos',            icon: Trophy },
+  { href: '/tips',       label: 'Tips & Estrategias', icon: Lightbulb },
+  { href: '/rankings',   label: 'Rankings',           icon: BarChart2 },
+  { href: '/perfil',     label: 'Perfil',             icon: User },
 ];
 
 export default function Sidebar() {
@@ -29,7 +30,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div style={{ padding: '24px 20px', borderBottom: '1px solid #1E2540' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '24px' }}>🎮</span>
+          <Gamepad2 size={24} color="#A78BFA" />
           <span style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF' }}>GameCenter</span>
         </div>
       </div>
@@ -48,7 +49,7 @@ export default function Sidebar() {
               backgroundColor: isActive ? '#7C3AED' : 'transparent',
               transition: 'all 0.15s ease',
             }}>
-              <span style={{ fontSize: '16px', lineHeight: 1 }}>{item.icon}</span>
+              <item.icon size={16} strokeWidth={isActive ? 2.5 : 2} />
               {item.label}
             </Link>
           );

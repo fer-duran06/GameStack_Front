@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import MainLayout from '@/components/layout/MainLayout';
+import { Trophy, Calendar, Users, Globe, ClipboardList } from 'lucide-react';
 
 interface MyTournament {
   id: number;
@@ -60,14 +61,14 @@ export default function TorneosPage() {
       {/* ── Mis torneos creados ── */}
       {myTournaments.length > 0 && (
         <div style={{ marginBottom: '32px' }}>
-          <p style={{ fontSize: '13px', fontWeight: '600', color: '#A78BFA', marginBottom: '14px' }}>
-            🏆 Mis torneos creados ({myTournaments.length})
+          <p style={{ fontSize: '13px', fontWeight: '600', color: '#A78BFA', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Trophy size={13} /> Mis torneos creados ({myTournaments.length})
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
             {myTournaments.map((t) => (
               <div key={t.id} style={{ backgroundColor: '#0F1424', border: '1px solid #7C3AED44', borderRadius: '12px', overflow: 'hidden' }}>
                 <div style={{ height: '100px', backgroundColor: '#7C3AED22', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                  <span style={{ fontSize: '36px' }}>🏆</span>
+                  <Trophy size={36} color="#A78BFA" />
                   <span style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#7C3AED', color: '#FFFFFF', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' }}>
                     ID: {t.id}
                   </span>
@@ -79,9 +80,9 @@ export default function TorneosPage() {
                   <p style={{ fontSize: '11px', color: '#A78BFA', fontWeight: '600', marginBottom: '4px' }}>Game ID: {t.game_id}</p>
                   <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', marginBottom: '10px', lineHeight: 1.3 }}>{t.name}</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: '#8892A4', marginBottom: '10px' }}>
-                    <span>📋 {TYPE_LABEL[t.type] || t.type}</span>
-                    <span>👥 0/{t.max_participants} participantes</span>
-                    <span>📅 {formatDate(t.start_date)}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><ClipboardList size={11} /> {TYPE_LABEL[t.type] || t.type}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={11} /> 0/{t.max_participants} participantes</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={11} /> {formatDate(t.start_date)}</span>
                   </div>
                   {t.description && (
                     <p style={{ fontSize: '11px', color: '#8892A4', lineHeight: 1.5, marginBottom: '10px', borderTop: '1px solid #1E2540', paddingTop: '8px' }}>
@@ -97,13 +98,13 @@ export default function TorneosPage() {
 
       {/* ── Torneos destacados (mock) ── */}
       <div>
-        <p style={{ fontSize: '13px', fontWeight: '600', color: '#8892A4', marginBottom: '14px' }}>
-          🌎 Torneos destacados
+        <p style={{ fontSize: '13px', fontWeight: '600', color: '#8892A4', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Globe size={13} /> Torneos destacados
         </p>
 
         {/* Banner */}
         <div style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', padding: '18px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '20px' }}>📅</span>
+          <Calendar size={20} color="#A78BFA" />
           <div>
             <p style={{ fontSize: '15px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Próximos Torneos</p>
             <p style={{ fontSize: '13px', color: '#8892A4', margin: '2px 0 0' }}>No te pierdas las próximas competencias y asegura tu lugar</p>
@@ -121,16 +122,16 @@ export default function TorneosPage() {
           {mockTournaments.map((t) => (
             <div key={t.id} style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', overflow: 'hidden' }}>
               <div style={{ height: '140px', backgroundColor: '#161B2E', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: '40px' }}>🏆</span>
+                <Trophy size={40} color="#A78BFA" />
                 <span style={{ position: 'absolute', top: '10px', right: '10px', fontSize: '11px', fontWeight: '700', color: '#FFFFFF', backgroundColor: t.badgeBg, padding: '3px 10px', borderRadius: '20px' }}>{t.badge}</span>
               </div>
               <div style={{ padding: '14px' }}>
                 <p style={{ fontSize: '11px', color: '#A78BFA', fontWeight: '600', marginBottom: '4px' }}>{t.game}</p>
                 <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', marginBottom: '10px', lineHeight: 1.3 }}>{t.name}</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: '#8892A4', marginBottom: '14px' }}>
-                  <span>📅 {t.start}</span>
-                  <span>👥 {t.participants} participantes</span>
-                  <span style={{ color: '#FCD34D', fontWeight: '600' }}>💰 {t.prize}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={11} /> {t.start}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={11} /> {t.participants} participantes</span>
+                  <span style={{ color: '#FCD34D', fontWeight: '600' }}>Premio: {t.prize}</span>
                 </div>
                 <button style={{ width: '100%', padding: '9px 0', backgroundColor: t.status === 'finished' ? 'transparent' : '#7C3AED', border: t.status === 'finished' ? '1px solid #1E2540' : 'none', borderRadius: '8px', color: t.status === 'finished' ? '#8892A4' : '#FFFFFF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
                   {t.status === 'active' ? 'Ver en vivo' : t.status === 'finished' ? 'Ver resultados' : 'Inscribirse'}

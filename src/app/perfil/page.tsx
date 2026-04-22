@@ -4,14 +4,15 @@ import { useEffect, useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { usersService } from '@/services/users.service';
 import { User, UserStats } from '@/types/user.types';
+import { Zap, Trophy, Target, Calendar, Gamepad2, Flame, Medal, Star, BarChart2, Check } from 'lucide-react';
 
 const achievements = [
-  { icon: '🏆', name: 'Primera Victoria',   desc: 'Gana tu primera partida',        unlocked: true  },
-  { icon: '🔥', name: 'Racha de 5',         desc: 'Gana 5 partidas consecutivas',   unlocked: true  },
-  { icon: '🎯', name: 'Campeón de Torneo',  desc: 'Gana un torneo oficial',          unlocked: false },
-  { icon: '💡', name: 'Maestro de Tips',    desc: 'Publica 10 tips',                 unlocked: false },
-  { icon: '⭐', name: 'Top 10',             desc: 'Alcanza el top 10 del ranking',   unlocked: false },
-  { icon: '📊', name: 'Estratega',          desc: 'Publica 5 estrategias',           unlocked: false },
+  { icon: Trophy,   name: 'Primera Victoria',   desc: 'Gana tu primera partida',        unlocked: true  },
+  { icon: Flame,    name: 'Racha de 5',         desc: 'Gana 5 partidas consecutivas',   unlocked: true  },
+  { icon: Target,   name: 'Campeón de Torneo',  desc: 'Gana un torneo oficial',          unlocked: false },
+  { icon: Medal,    name: 'Maestro de Tips',    desc: 'Publica 10 tips',                 unlocked: false },
+  { icon: Star,     name: 'Top 10',             desc: 'Alcanza el top 10 del ranking',   unlocked: false },
+  { icon: BarChart2,name: 'Estratega',          desc: 'Publica 5 estrategias',           unlocked: false },
 ];
 
 export default function PerfilPage() {
@@ -40,9 +41,9 @@ export default function PerfilPage() {
       const res = await usersService.updateMe({ name: form.name || undefined, biografia: form.biografia || undefined, riot_id: form.riot_id || undefined });
       setProfile(res.user);
       setEditing(false);
-      setMsg('✅ Perfil actualizado');
+      setMsg('Perfil actualizado');
     } catch (err: unknown) {
-      setMsg(err instanceof Error ? `❌ ${err.message}` : '❌ Error al guardar');
+      setMsg(err instanceof Error ? err.message : 'Error al guardar');
     } finally { setSaving(false); }
   };
 
@@ -67,7 +68,7 @@ export default function PerfilPage() {
               </span>
             </div>
             <p style={{ fontSize: '13px', color: '#8892A4', margin: 0 }}>{profile.email}</p>
-            {profile.riot_id && <p style={{ fontSize: '12px', color: '#A78BFA', margin: '4px 0 0' }}>🎮 Riot ID: {profile.riot_id}</p>}
+            {profile.riot_id && <p style={{ fontSize: '12px', color: '#A78BFA', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}><Gamepad2 size={12} /> Riot ID: {profile.riot_id}</p>}
             {profile.biografia && <p style={{ fontSize: '12px', color: '#8892A4', margin: '6px 0 0' }}>{profile.biografia}</p>}
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
@@ -92,18 +93,18 @@ export default function PerfilPage() {
             <div><label style={{ display: 'block', fontSize: '11px', color: '#8892A4', marginBottom: '6px' }}>Biografía</label><input value={form.biografia} onChange={(e) => setForm(f => ({ ...f, biografia: e.target.value }))} placeholder="Cuéntanos sobre ti..." style={inp} /></div>
           </div>
         )}
-        {msg && <p style={{ marginTop: '12px', fontSize: '12px', color: msg.startsWith('✅') ? '#4ADE80' : '#F87171' }}>{msg}</p>}
+        {msg && <p style={{ marginTop: '12px', fontSize: '12px', color: saving ? '#4ADE80' : '#F87171' }}>{msg}</p>}
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', paddingTop: '20px', borderTop: '1px solid #1E2540', marginTop: editing ? '16px' : '0' }}>
           {[
-            { icon: '⚡', label: 'Partidas Jugadas', value: '—',                        color: '#A78BFA' },
-            { icon: '🏆', label: 'Victorias',        value: '—',                        color: '#4ADE80' },
-            { icon: '🎯', label: 'Win Rate',         value: '—',                        color: '#60A5FA' },
-            { icon: '📅', label: 'Torneos',          value: stats?.torneos_jugados || '0', color: '#FCD34D' },
+            { icon: <Zap size={20} color="#A78BFA" />,      label: 'Partidas Jugadas', value: '—',                        color: '#A78BFA' },
+            { icon: <Trophy size={20} color="#4ADE80" />,   label: 'Victorias',        value: '—',                        color: '#4ADE80' },
+            { icon: <Target size={20} color="#60A5FA" />,   label: 'Win Rate',         value: '—',                        color: '#60A5FA' },
+            { icon: <Calendar size={20} color="#FCD34D" />, label: 'Torneos',          value: stats?.torneos_jugados || '0', color: '#FCD34D' },
           ].map((s, i) => (
             <div key={i} style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '20px', display: 'block', marginBottom: '8px' }}>{s.icon}</span>
+              <span style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>{s.icon}</span>
               <p style={{ fontSize: '22px', fontWeight: '800', color: s.color, margin: '0 0 4px' }}>{s.value}</p>
               <p style={{ fontSize: '11px', color: '#8892A4', margin: 0 }}>{s.label}</p>
             </div>
@@ -111,18 +112,17 @@ export default function PerfilPage() {
         </div>
       </div>
 
-      {/* Logros */}
       <div style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', padding: '20px' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF', marginBottom: '16px' }}>🏅 Logros</h2>
+        <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Medal size={16} color="#FCD34D" /> Logros</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {achievements.map((a, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 16px', backgroundColor: a.unlocked ? '#7C3AED22' : '#161B2E', borderRadius: '10px', border: `1px solid ${a.unlocked ? '#7C3AED44' : '#1E2540'}`, opacity: a.unlocked ? 1 : 0.6 }}>
-              <span style={{ fontSize: '24px', filter: a.unlocked ? 'none' : 'grayscale(1)' }}>{a.icon}</span>
+              <span style={{ opacity: a.unlocked ? 1 : 0.4 }}><a.icon size={24} color={a.unlocked ? '#A78BFA' : '#6B7280'} /></span>
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{a.name}</p>
                 <p style={{ fontSize: '11px', color: '#8892A4', margin: '2px 0 0' }}>{a.desc}</p>
               </div>
-              {a.unlocked && <span style={{ fontSize: '11px', color: '#4ADE80', fontWeight: '600' }}>✓ Desbloqueado</span>}
+              {a.unlocked && <span style={{ fontSize: '11px', color: '#4ADE80', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> Desbloqueado</span>}
             </div>
           ))}
         </div>

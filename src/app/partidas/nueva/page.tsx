@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import { matchesService } from '@/services/matches.service';
+import { AlertTriangle, Swords } from 'lucide-react';
 
 interface RegisteredGame { id: number; name: string; image_url: string; }
 
@@ -52,8 +53,8 @@ export default function NuevaPartidaPage() {
           <div>
             <label style={lbl}>Juego *</label>
             {games.length === 0 ? (
-              <div style={{ backgroundColor: '#161B2E', border: '1.5px solid #FCD34D44', borderRadius: '8px', padding: '12px 14px', fontSize: '13px', color: '#FCD34D' }}>
-                ⚠️ No tienes juegos registrados. Ve a{' '}
+              <div style={{ backgroundColor: '#161B2E', border: '1.5px solid #FCD34D44', borderRadius: '8px', padding: '12px 14px', fontSize: '13px', color: '#FCD34D', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertTriangle size={14} /> No tienes juegos registrados. Ve a{' '}
                 <span onClick={() => router.push('/juegos')} style={{ textDecoration: 'underline', cursor: 'pointer' }}>Juegos</span>
                 {' '}y registra uno primero.
               </div>
@@ -77,8 +78,8 @@ export default function NuevaPartidaPage() {
           {error && <p style={{ fontSize: '12px', color: '#F87171' }}>{error}</p>}
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
             <button onClick={() => router.back()} style={{ padding: '10px 20px', backgroundColor: 'transparent', border: '1px solid #1E2540', borderRadius: '8px', color: '#8892A4', fontSize: '13px', cursor: 'pointer' }}>Cancelar</button>
-            <button onClick={handleSubmit} disabled={loading || games.length === 0} style={{ padding: '10px 20px', backgroundColor: '#7C3AED', border: 'none', borderRadius: '8px', color: '#FFFFFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: games.length === 0 ? 0.5 : 1 }}>
-              {loading ? 'Creando...' : '⚔️ Crear partida'}
+            <button onClick={handleSubmit} disabled={loading || games.length === 0} style={{ padding: '10px 20px', backgroundColor: '#7C3AED', border: 'none', borderRadius: '8px', color: '#FFFFFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: games.length === 0 ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {loading ? 'Creando...' : <><Swords size={14} /> Crear partida</>}
             </button>
           </div>
         </div>
