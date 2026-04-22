@@ -16,20 +16,38 @@ export default function TipsPage() {
   const [communityTips, setCommunityTips] = useState<Tip[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMy, setLoadingMy] = useState(true);
+  const [likingId, setLikingId] = useState<number | null>(null);
 
   useEffect(() => {
-    // Cargar mis tips desde la API
     tipsService.getMy()
       .then((res) => setMyTips(res.tips))
       .catch(() => {})
       .finally(() => setLoadingMy(false));
 
-    // Cargar tips de la comunidad desde la API
     tipsService.getAll()
       .then((res) => setCommunityTips(res.tips))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const handleLike = async (tipId: number) => {
+    if (likingId === tipId) return;
+    setLikingId(tipId);
+    try {
+      const res = await tipsService.toggleLike(tipId);
+      const delta = res.action === 'liked' ? 1 : -1;
+      setCommunityTips((prev) =>
+        prev.map((t) => t.id === tipId ? { ...t, likes_count: t.likes_count + delta } : t)
+      );
+      setMyTips((prev) =>
+        prev.map((t) => t.id === tipId ? { ...t, likes_count: t.likes_count + delta } : t)
+      );
+    } catch {
+      // silencioso
+    } finally {
+      setLikingId(null);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     try {
@@ -74,7 +92,13 @@ export default function TipsPage() {
                 <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#FFFFFF', marginBottom: '8px' }}>{tip.title}</h3>
                 <p style={{ fontSize: '12px', color: '#8892A4', lineHeight: 1.6, marginBottom: '12px' }}>{tip.content}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#8892A4', borderTop: '1px solid #1E2540', paddingTop: '10px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><ThumbsUp size={12} /> {tip.likes_count}</span>
+                  <button
+                    onClick={() => handleLike(tip.id)}
+                    disabled={likingId === tip.id}
+                    style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: '#8892A4', cursor: 'pointer', fontSize: '12px', padding: 0 }}
+                  >
+                    <ThumbsUp size={12} /> {tip.likes_count}
+                  </button>
                   <span style={{ fontSize: '11px', color: '#A78BFA' }}>ID: {tip.id}</span>
                 </div>
               </div>
@@ -83,13 +107,12 @@ export default function TipsPage() {
         </div>
       )}
 
-      {/* ── Tips de la comunidad (API) ── */}
+      {/* ── Tips de la comunidad ── */}
       <div>
         <p style={{ fontSize: '13px', fontWeight: '600', color: '#8892A4', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Globe size={13} /> Tips de la comunidad
         </p>
 
-        {/* Filtros */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
           {['Todos', 'Tips', 'Estrategias', 'Builds'].map((f, i) => (
             <button key={f} style={{ padding: '7px 16px', borderRadius: '20px', border: `1px solid ${i === 0 ? '#7C3AED' : '#1E2540'}`, backgroundColor: i === 0 ? '#7C3AED' : 'transparent', color: i === 0 ? '#FFFFFF' : '#8892A4', fontSize: '12px', cursor: 'pointer' }}>{f}</button>
@@ -97,7 +120,6 @@ export default function TipsPage() {
         </div>
 
         {loading && <p style={{ color: '#8892A4', textAlign: 'center', padding: '32px' }}>Cargando tips...</p>}
-
         {!loading && communityTips.length === 0 && (
           <p style={{ color: '#8892A4', textAlign: 'center', padding: '32px' }}>No hay tips disponibles aún</p>
         )}
@@ -125,7 +147,18 @@ export default function TipsPage() {
                 <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#FFFFFF', marginBottom: '8px' }}>{tip.title}</h3>
                 <p style={{ fontSize: '12px', color: '#8892A4', lineHeight: 1.6, marginBottom: '14px' }}>{tip.content}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#8892A4' }}>
-                  <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><ThumbsUp size={12} /> {tip.likes_count}</span>
+                  <button
+                    onClick={() => handleLike(tip.id)}
+                    disabled={likingId === tip.id}
+                    style={{
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+                      background: 'none', border: 'none', padding: 0,
+                      color: likingId === tip.id ? '#A78BFA' : '#8892A4',
+                      fontSize: '12px', transition: 'color 0.15s',
+                    }}
+                  >
+                    <ThumbsUp size={12} /> {tip.likes_count}
+                  </button>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MessageCircle size={12} /> 0</span>
                   <span style={{ marginLeft: 'auto', cursor: 'pointer' }}><Bookmark size={12} /></span>
                 </div>
