@@ -25,19 +25,51 @@ const STATUS_COLOR: Record<string, string> = {
   finished: '#9CA3AF',
 };
 
-export default function TorneosPage() {
-  const [myTournaments, setMyTournaments] = useState<Tournament[]>([]);
-  const [communityTournaments, setCommunityTournaments] = useState<Tournament[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMy, setLoadingMy] = useState(true);
+// Mapeo filtro UI → valor de status en el backend
+const FILTER_MAP: Record<string, string | null> = {
+  all:       null,
+  proximos:  'registration',
+  live:      'active',
+  finished:  'finished',
+};
 
-  // Modal de info
+const STORAGE_KEY = 'gamecenter_joined_tournaments';
+
+const loadJoinedIds = (): Set<number> => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return new Set();
+    return new Set<number>(JSON.parse(raw));
+  } catch {
+    return new Set();
+  }
+};
+
+const saveJoinedIds = (ids: Set<number>) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+  } catch { /* ignore */ }
+};
+
+export default function TorneosPage() {
+  const [myTournaments, setMyTournaments]           = useState<Tournament[]>([]);
+  const [communityTournaments, setCommunityTournaments] = useState<Tournament[]>([]);
+  const [loading, setLoading]                       = useState(true);
+  const [loadingMy, setLoadingMy]                   = useState(true);
+  const [filter, setFilter]                         = useState('all');
+
+  // Modal
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
 
-  // Estado de inscripción por torneo
-  const [joiningId, setJoiningId] = useState<number | null>(null);
-  const [joinedIds, setJoinedIds] = useState<Set<number>>(new Set());
-  const [joinError, setJoinError] = useState<string>('');
+  // Inscripciones persistentes
+  const [joiningId, setJoiningId]   = useState<number | null>(null);
+  const [joinedIds, setJoinedIds]   = useState<Set<number>>(new Set());
+  const [joinError, setJoinError]   = useState('');
+
+  // Cargar IDs guardados en localStorage al montar
+  useEffect(() => {
+    setJoinedIds(loadJoinedIds());
+  }, []);
 
   useEffect(() => {
     tournamentsService.getMy()
@@ -51,25 +83,39 @@ export default function TorneosPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  /* ── Filtrado ── */
+  const filteredTournaments = communityTournaments.filter((t) => {
+    const statusFilter = FILTER_MAP[filter];
+    if (!statusFilter) return true;       // "Todos"
+    return t.status === statusFilter;
+  });
+
+  /* ── Inscribirse ── */
   const handleJoin = async (tournamentId: number) => {
     if (joiningId === tournamentId) return;
     setJoiningId(tournamentId);
     setJoinError('');
     try {
       await tournamentsService.join(tournamentId);
-      setJoinedIds((prev) => new Set([...prev, tournamentId]));
-      // Actualizar contador de participantes
-      setCommunityTournaments((prev) =>
-        prev.map((t) =>
+
+      // Guardar en localStorage
+      const updated = new Set([...joinedIds, tournamentId]);
+      setJoinedIds(updated);
+      saveJoinedIds(updated);
+
+      // Corregir contador — forzar Number() para evitar concatenación de strings
+      const updateCount = (list: Tournament[]) =>
+        list.map((t) =>
           t.id === tournamentId
-            ? { ...t, current_participants: (t.current_participants || 0) + 1 }
-            : t
-        )
-      );
+            ? { ...t, current_participants: Number(t.current_participants || 0) + 1 }
+            : t,
+        );
+
+      setCommunityTournaments((prev) => updateCount(prev));
       setSelectedTournament((prev) =>
         prev?.id === tournamentId
-          ? { ...prev, current_participants: (prev.current_participants || 0) + 1 }
-          : prev
+          ? { ...prev, current_participants: Number(prev.current_participants || 0) + 1 }
+          : prev,
       );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al inscribirse';
@@ -79,20 +125,15 @@ export default function TorneosPage() {
     }
   };
 
+  const openInfo  = (t: Tournament) => { setSelectedTournament(t); setJoinError(''); };
+  const closeInfo = () => { setSelectedTournament(null); setJoinError(''); };
+
   const formatDate = (dateStr: string) => {
     try {
-      return new Date(dateStr).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      return new Date(dateStr).toLocaleDateString('es-MX', {
+        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+      });
     } catch { return dateStr; }
-  };
-
-  const openInfo = (t: Tournament) => {
-    setSelectedTournament(t);
-    setJoinError('');
-  };
-
-  const closeInfo = () => {
-    setSelectedTournament(null);
-    setJoinError('');
   };
 
   return (
@@ -132,7 +173,9 @@ export default function TorneosPage() {
                   <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', marginBottom: '10px', lineHeight: 1.3 }}>{t.name}</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: '#8892A4', marginBottom: '10px' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><ClipboardList size={11} /> {TYPE_LABEL[t.type] || t.type}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={11} /> {t.current_participants || 0}/{t.max_participants} participantes</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Users size={11} /> {Number(t.current_participants || 0)}/{t.max_participants} participantes
+                    </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={11} /> {formatDate(t.start_date)}</span>
                   </div>
                   <button
@@ -162,23 +205,47 @@ export default function TorneosPage() {
           </div>
         </div>
 
+        {/* ── Filtros funcionales ── */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-          {['Todos', 'Próximos', 'En vivo', 'Finalizados'].map((f, i) => (
-            <button key={f} style={{ padding: '7px 16px', borderRadius: '20px', border: `1px solid ${i === 0 ? '#7C3AED' : '#1E2540'}`, backgroundColor: i === 0 ? '#7C3AED' : 'transparent', color: i === 0 ? '#FFFFFF' : '#8892A4', fontSize: '12px', cursor: 'pointer' }}>{f}</button>
+          {[
+            { k: 'all',      l: 'Todos' },
+            { k: 'proximos', l: 'Próximos' },
+            { k: 'live',     l: 'En vivo' },
+            { k: 'finished', l: 'Finalizados' },
+          ].map((f) => (
+            <button
+              key={f.k}
+              onClick={() => setFilter(f.k)}
+              style={{
+                padding: '7px 16px',
+                borderRadius: '20px',
+                border: `1px solid ${filter === f.k ? '#7C3AED' : '#1E2540'}`,
+                backgroundColor: filter === f.k ? '#7C3AED' : 'transparent',
+                color: filter === f.k ? '#FFFFFF' : '#8892A4',
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
+            >
+              {f.l}
+            </button>
           ))}
         </div>
 
         {loading && <p style={{ color: '#8892A4', textAlign: 'center', padding: '32px' }}>Cargando torneos...</p>}
-        {!loading && communityTournaments.length === 0 && (
-          <p style={{ color: '#8892A4', textAlign: 'center', padding: '32px' }}>No hay torneos disponibles aún</p>
+
+        {!loading && filteredTournaments.length === 0 && (
+          <p style={{ color: '#8892A4', textAlign: 'center', padding: '32px' }}>
+            No hay torneos {filter !== 'all' ? `con estado "${FILTER_MAP[filter]}"` : 'disponibles'} aún
+          </p>
         )}
 
-        {!loading && communityTournaments.length > 0 && (
+        {!loading && filteredTournaments.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-            {communityTournaments.map((t) => {
-              const isJoined = joinedIds.has(t.id);
+            {filteredTournaments.map((t) => {
+              const isJoined  = joinedIds.has(t.id);
               const isJoining = joiningId === t.id;
-              const isFull = (t.current_participants || 0) >= t.max_participants;
+              const current   = Number(t.current_participants || 0);
+              const isFull    = current >= t.max_participants;
 
               return (
                 <div key={t.id} style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', overflow: 'hidden' }}>
@@ -198,7 +265,9 @@ export default function TorneosPage() {
                     <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', marginBottom: '10px', lineHeight: 1.3 }}>{t.name}</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: '#8892A4', marginBottom: '14px' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={11} /> {formatDate(t.start_date)}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={11} /> {t.current_participants || 0}/{t.max_participants} participantes</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Users size={11} /> {current}/{t.max_participants} participantes
+                      </span>
                     </div>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button
@@ -213,7 +282,8 @@ export default function TorneosPage() {
                           disabled={isJoining || isJoined || isFull}
                           style={{
                             flex: 1, padding: '8px 0', border: 'none', borderRadius: '8px',
-                            fontSize: '11px', fontWeight: '600', cursor: isJoined || isFull ? 'default' : 'pointer',
+                            fontSize: '11px', fontWeight: '600',
+                            cursor: isJoined || isFull ? 'default' : 'pointer',
                             backgroundColor: isJoined ? '#16A34A' : isFull ? '#374151' : '#7C3AED',
                             color: '#FFFFFF',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
@@ -241,7 +311,9 @@ export default function TorneosPage() {
         )}
       </div>
 
-      {/* ── Modal de información de torneo ── */}
+      {/* ══════════════════════════════════════════
+          MODAL DE INFORMACIÓN DE TORNEO
+      ══════════════════════════════════════════ */}
       {selectedTournament && (
         <div
           onClick={closeInfo}
@@ -288,12 +360,12 @@ export default function TorneosPage() {
               {/* Info grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
                 {[
-                  { label: 'Juego', value: selectedTournament.game_name || `ID: ${selectedTournament.game_id}` },
-                  { label: 'Formato', value: TYPE_LABEL[selectedTournament.type] || selectedTournament.type },
-                  { label: 'Participantes', value: `${selectedTournament.current_participants || 0} / ${selectedTournament.max_participants}` },
-                  { label: 'Fecha inicio', value: formatDate(selectedTournament.start_date) },
-                  ...(selectedTournament.end_date ? [{ label: 'Fecha fin', value: formatDate(selectedTournament.end_date) }] : []),
-                  ...(selectedTournament.creator_name ? [{ label: 'Organizador', value: selectedTournament.creator_name }] : []),
+                  { label: 'Juego',           value: selectedTournament.game_name || `ID: ${selectedTournament.game_id}` },
+                  { label: 'Formato',         value: TYPE_LABEL[selectedTournament.type] || selectedTournament.type },
+                  { label: 'Participantes',   value: `${Number(selectedTournament.current_participants || 0)} / ${selectedTournament.max_participants}` },
+                  { label: 'Fecha inicio',    value: formatDate(selectedTournament.start_date) },
+                  ...(selectedTournament.end_date        ? [{ label: 'Fecha fin',    value: formatDate(selectedTournament.end_date) }]       : []),
+                  ...(selectedTournament.creator_name    ? [{ label: 'Organizador', value: selectedTournament.creator_name }]                : []),
                 ].map((item) => (
                   <div key={item.label} style={{ backgroundColor: '#161B2E', borderRadius: '8px', padding: '12px 14px' }}>
                     <p style={{ fontSize: '11px', color: '#8892A4', margin: '0 0 4px' }}>{item.label}</p>
@@ -329,16 +401,30 @@ export default function TorneosPage() {
               {selectedTournament.status === 'registration' && (
                 <button
                   onClick={() => handleJoin(selectedTournament.id)}
-                  disabled={joiningId === selectedTournament.id || joinedIds.has(selectedTournament.id) || (selectedTournament.current_participants || 0) >= selectedTournament.max_participants}
+                  disabled={
+                    joiningId === selectedTournament.id ||
+                    joinedIds.has(selectedTournament.id) ||
+                    Number(selectedTournament.current_participants || 0) >= selectedTournament.max_participants
+                  }
                   style={{
                     width: '100%', padding: '12px 0', borderRadius: '10px', border: 'none',
                     fontSize: '14px', fontWeight: '700', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    backgroundColor: joinedIds.has(selectedTournament.id) ? '#16A34A' : (selectedTournament.current_participants || 0) >= selectedTournament.max_participants ? '#374151' : '#7C3AED',
+                    backgroundColor: joinedIds.has(selectedTournament.id)
+                      ? '#16A34A'
+                      : Number(selectedTournament.current_participants || 0) >= selectedTournament.max_participants
+                      ? '#374151'
+                      : '#7C3AED',
                     color: '#FFFFFF',
                   }}
                 >
-                  {joiningId === selectedTournament.id ? 'Inscribiendo...' : joinedIds.has(selectedTournament.id) ? <><Check size={16} /> Ya estás inscrito</> : (selectedTournament.current_participants || 0) >= selectedTournament.max_participants ? 'Torneo lleno' : <><Trophy size={16} /> Inscribirme al torneo</>}
+                  {joiningId === selectedTournament.id
+                    ? 'Inscribiendo...'
+                    : joinedIds.has(selectedTournament.id)
+                    ? <><Check size={16} /> Ya estás inscrito</>
+                    : Number(selectedTournament.current_participants || 0) >= selectedTournament.max_participants
+                    ? 'Torneo lleno'
+                    : <><Trophy size={16} /> Inscribirme al torneo</>}
                 </button>
               )}
             </div>
