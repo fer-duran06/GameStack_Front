@@ -15,6 +15,10 @@ interface JoinResponse {
   message: string;
 }
 
+interface LeaveResponse {
+  message: string;
+}
+
 interface BracketResponse {
   message: string;
   total_matches_created: number;
@@ -32,6 +36,9 @@ export const tournamentsService = {
 
   join: (tournamentId: number): Promise<JoinResponse> =>
     api.post<JoinResponse>(`/api/v1/tournaments/${tournamentId}/join`, {}, true),
+
+  leave: (tournamentId: number): Promise<LeaveResponse> =>
+    api.post<LeaveResponse>(`/api/v1/tournaments/${tournamentId}/leave`, {}, true),
 
   generateBracket: (tournamentId: number): Promise<BracketResponse> =>
     api.post<BracketResponse>(`/api/v1/tournaments/${tournamentId}/generate-bracket`, {}, true),
