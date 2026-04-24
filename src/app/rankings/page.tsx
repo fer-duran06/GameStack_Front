@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { rankingsService } from '@/services/rankings.service';
+import { gamesService } from '@/services/games.service';
 import { RankingEntry } from '@/types/ranking.types';
-import { Calendar, BarChart2, Medal, Gamepad2 } from 'lucide-react';
-
-interface RegisteredGame { id: number; name: string; image_url: string; }
+import { Game } from '@/types/game.types';
+import { Calendar, BarChart2, Medal, Search, X } from 'lucide-react';
 
 const medal = (pos: number) => {
   if (pos === 1) return <Medal size={16} color="#FCD34D" />;
@@ -19,31 +19,59 @@ const posColor = (pos: number) =>
   pos === 1 ? '#FCD34D' : pos === 2 ? '#9CA3AF' : pos === 3 ? '#D97706' : '#8892A4';
 
 export default function RankingsPage() {
-  const [leaderboard, setLeaderboard] = useState<RankingEntry[]>([]);
-  const [loading, setLoading]         = useState(false);
-  const [period, setPeriod]           = useState<'quincenal' | 'mensual'>('quincenal');
-  const [error, setError]             = useState('');
+  const [leaderboard, setLeaderboard]   = useState<RankingEntry[]>([]);
+  const [loading, setLoading]           = useState(false);
+  const [period, setPeriod]             = useState<'quincenal' | 'mensual'>('quincenal');
+  const [error, setError]               = useState('');
 
-  // Juegos desde localStorage
-  const [registeredGames, setRegisteredGames] = useState<RegisteredGame[]>([]);
-  const [selectedGameId, setSelectedGameId]   = useState<number | null>(null);
+  // Todos los juegos de la plataforma
+  const [allGames, setAllGames]         = useState<Game[]>([]);
 
+  // Juego seleccionado
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+
+  // Buscador
+  const [query, setQuery]               = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Cargar todos los juegos al montar
   useEffect(() => {
-    const saved = localStorage.getItem('gamecenter_registered_games');
-    if (saved) {
-      try {
-        const games: RegisteredGame[] = JSON.parse(saved);
-        setRegisteredGames(games);
-        if (games.length > 0) setSelectedGameId(games[0].id);
-      } catch { /* ignore */ }
-    }
+    gamesService.getAll()
+      .then((res) => {
+        setAllGames(res.games || []);
+        // Seleccionar el primero automáticamente
+        if (res.games?.length > 0) {
+          setSelectedGame(res.games[0]);
+          setQuery(res.games[0].name);
+        }
+      })
+      .catch(() => {
+        // Si el endpoint no existe, fallback a localStorage
+        try {
+          const saved = localStorage.getItem('gamecenter_registered_games');
+          if (saved) {
+            const local = JSON.parse(saved) as { id: number; name: string; image_url: string }[];
+            const mapped: Game[] = local.map((g) => ({
+              id: g.id, name: g.name, image_url: g.image_url,
+              rawg_id: 0, created_by: 0, created_at: '',
+            }));
+            setAllGames(mapped);
+            if (mapped.length > 0) {
+              setSelectedGame(mapped[0]);
+              setQuery(mapped[0].name);
+            }
+          }
+        } catch { /* ignore */ }
+      });
   }, []);
 
   // Cargar ranking cuando cambia juego o periodo
   useEffect(() => {
-    if (!selectedGameId) return;
-    fetchRankings(selectedGameId, period);
-  }, [selectedGameId, period]);
+    if (!selectedGame) return;
+    fetchRankings(selectedGame.id, period);
+  }, [selectedGame, period]);
 
   const fetchRankings = async (gameId: number, p: 'quincenal' | 'mensual') => {
     setLoading(true);
@@ -57,7 +85,35 @@ export default function RankingsPage() {
     } finally { setLoading(false); }
   };
 
-  const selectedGame = registeredGames.find((g) => g.id === selectedGameId);
+  // Filtrar sugerencias
+  const suggestions = allGames.filter((g) =>
+    g.name.toLowerCase().includes(query.toLowerCase()),
+  );
+
+  const handleSelectGame = (game: Game) => {
+    setSelectedGame(game);
+    setQuery(game.name);
+    setShowSuggestions(false);
+  };
+
+  const handleClear = () => {
+    setQuery('');
+    setSelectedGame(null);
+    setLeaderboard([]);
+    setError('');
+    inputRef.current?.focus();
+  };
+
+  // Cerrar sugerencias al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <MainLayout>
@@ -79,9 +135,10 @@ export default function RankingsPage() {
       </div>
 
       {/* Controles */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+
         {/* Filtro periodo */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', paddingTop: '2px' }}>
           {(['quincenal', 'mensual'] as const).map((p) => (
             <button
               key={p}
@@ -99,38 +156,102 @@ export default function RankingsPage() {
           ))}
         </div>
 
-        {/* Selector de juego */}
-        {registeredGames.length === 0 ? (
+        {/* Buscador de juego */}
+        <div ref={containerRef} style={{ position: 'relative', flex: 1, minWidth: '220px', maxWidth: '360px' }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: '8px',
-            backgroundColor: '#FCD34D11', border: '1px solid #FCD34D33',
-            borderRadius: '8px', padding: '8px 14px', fontSize: '12px', color: '#FCD34D',
+            backgroundColor: '#161B2E', border: '1.5px solid #1E2540',
+            borderRadius: '8px', padding: '7px 12px',
           }}>
-            <Gamepad2 size={14} />
-            No tienes juegos registrados. Ve a{' '}
-            <a href="/juegos" style={{ color: '#A78BFA', textDecoration: 'underline' }}>Juegos</a>{' '}
-            para agregar uno.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Gamepad2 size={15} color="#8892A4" />
-            <select
-              value={selectedGameId ?? ''}
-              onChange={(e) => setSelectedGameId(Number(e.target.value))}
-              style={{
-                backgroundColor: '#161B2E', border: '1px solid #1E2540',
-                borderRadius: '8px', padding: '7px 12px',
-                color: '#E2E8F0', fontSize: '13px', cursor: 'pointer',
-                minWidth: '180px',
+            <Search size={14} color="#8892A4" style={{ flexShrink: 0 }} />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setShowSuggestions(true);
+                if (!e.target.value) setSelectedGame(null);
               }}
-            >
-              {registeredGames.map((g) => (
-                <option key={g.id} value={g.id}>{g.name}</option>
-              ))}
-            </select>
+              onFocus={() => setShowSuggestions(true)}
+              placeholder="Buscar juego..."
+              style={{
+                flex: 1, background: 'transparent', border: 'none',
+                color: '#E2E8F0', fontSize: '13px', outline: 'none',
+              }}
+            />
+            {query && (
+              <button onClick={handleClear} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+                <X size={14} color="#8892A4" />
+              </button>
+            )}
           </div>
-        )}
+
+          {/* Sugerencias */}
+          {showSuggestions && query && suggestions.length > 0 && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+              backgroundColor: '#161B2E', border: '1px solid #1E2540',
+              borderRadius: '8px', overflow: 'hidden', zIndex: 100,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+            }}>
+              {suggestions.slice(0, 8).map((game) => (
+                <button
+                  key={game.id}
+                  onClick={() => handleSelectGame(game)}
+                  style={{
+                    width: '100%', padding: '10px 14px',
+                    background: 'none', border: 'none',
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    cursor: 'pointer', textAlign: 'left',
+                    borderBottom: '1px solid #1E254033',
+                    backgroundColor: selectedGame?.id === game.id ? '#7C3AED22' : 'transparent',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#7C3AED22')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = selectedGame?.id === game.id ? '#7C3AED22' : 'transparent')}
+                >
+                  {game.image_url ? (
+                    <img
+                      src={game.image_url}
+                      alt={game.name}
+                      style={{ width: '28px', height: '28px', borderRadius: '4px', objectFit: 'cover', flexShrink: 0 }}
+                    />
+                  ) : (
+                    <div style={{ width: '28px', height: '28px', borderRadius: '4px', backgroundColor: '#7C3AED44', flexShrink: 0 }} />
+                  )}
+                  <span style={{ fontSize: '13px', color: '#E2E8F0', fontWeight: selectedGame?.id === game.id ? '600' : '400' }}>
+                    {game.name}
+                  </span>
+                </button>
+              ))}
+              {suggestions.length === 0 && (
+                <p style={{ padding: '12px 14px', fontSize: '13px', color: '#8892A4', margin: 0 }}>
+                  No se encontraron juegos
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Sin resultados */}
+          {showSuggestions && query && suggestions.length === 0 && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+              backgroundColor: '#161B2E', border: '1px solid #1E2540',
+              borderRadius: '8px', padding: '12px 14px', zIndex: 100,
+            }}>
+              <p style={{ fontSize: '13px', color: '#8892A4', margin: 0 }}>No se encontraron juegos</p>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Aviso si no hay juegos en la plataforma */}
+      {allGames.length === 0 && (
+        <div style={{ backgroundColor: '#FCD34D11', border: '1px solid #FCD34D33', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', fontSize: '13px', color: '#FCD34D' }}>
+          No hay juegos registrados en la plataforma aún. Ve a{' '}
+          <a href="/juegos" style={{ color: '#A78BFA', textDecoration: 'underline' }}>Juegos</a>{' '}
+          para registrar el primero.
+        </div>
+      )}
 
       {/* Tabla */}
       <div style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', overflow: 'hidden' }}>
@@ -142,6 +263,12 @@ export default function RankingsPage() {
           <span>Posición</span><span>Jugador</span><span>Puntos</span><span>V / D</span><span>Partidas</span>
         </div>
 
+        {!selectedGame && !loading && (
+          <p style={{ color: '#8892A4', textAlign: 'center', padding: '32px', fontSize: '13px' }}>
+            Busca un juego para ver su ranking
+          </p>
+        )}
+
         {loading && (
           <p style={{ color: '#8892A4', textAlign: 'center', padding: '32px' }}>Cargando...</p>
         )}
@@ -150,12 +277,12 @@ export default function RankingsPage() {
           <p style={{ color: '#F87171', textAlign: 'center', padding: '32px', fontSize: '13px' }}>{error}</p>
         )}
 
-        {!loading && !error && leaderboard.length === 0 && (
+        {!loading && !error && selectedGame && leaderboard.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px', color: '#8892A4' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
               <BarChart2 size={36} color="#4B5563" />
             </div>
-            <p>No hay datos de ranking para este juego y período</p>
+            <p>No hay datos de ranking para <strong style={{ color: '#E2E8F0' }}>{selectedGame.name}</strong> en este período</p>
           </div>
         )}
 
