@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { rankingsService } from '@/services/rankings.service';
 import { RankingEntry } from '@/types/ranking.types';
-import { Calendar, BarChart2, Medal } from 'lucide-react';
+import { Calendar, BarChart2, Medal, Gamepad2 } from 'lucide-react';
+
+interface RegisteredGame { id: number; name: string; image_url: string; }
 
 const medal = (pos: number) => {
   if (pos === 1) return <Medal size={16} color="#FCD34D" />;
@@ -13,19 +15,41 @@ const medal = (pos: number) => {
   return <span style={{ fontSize: '14px', fontWeight: '800', color: '#8892A4' }}>#{pos}</span>;
 };
 
+const posColor = (pos: number) =>
+  pos === 1 ? '#FCD34D' : pos === 2 ? '#9CA3AF' : pos === 3 ? '#D97706' : '#8892A4';
+
 export default function RankingsPage() {
   const [leaderboard, setLeaderboard] = useState<RankingEntry[]>([]);
   const [loading, setLoading]         = useState(false);
   const [period, setPeriod]           = useState<'quincenal' | 'mensual'>('quincenal');
-  const [gameId, setGameId]           = useState('1');
   const [error, setError]             = useState('');
 
-  const fetchRankings = async () => {
-    const id = parseInt(gameId);
-    if (!id) return;
-    setLoading(true); setError('');
+  // Juegos desde localStorage
+  const [registeredGames, setRegisteredGames] = useState<RegisteredGame[]>([]);
+  const [selectedGameId, setSelectedGameId]   = useState<number | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('gamecenter_registered_games');
+    if (saved) {
+      try {
+        const games: RegisteredGame[] = JSON.parse(saved);
+        setRegisteredGames(games);
+        if (games.length > 0) setSelectedGameId(games[0].id);
+      } catch { /* ignore */ }
+    }
+  }, []);
+
+  // Cargar ranking cuando cambia juego o periodo
+  useEffect(() => {
+    if (!selectedGameId) return;
+    fetchRankings(selectedGameId, period);
+  }, [selectedGameId, period]);
+
+  const fetchRankings = async (gameId: number, p: 'quincenal' | 'mensual') => {
+    setLoading(true);
+    setError('');
     try {
-      const res = await rankingsService.get(id, period);
+      const res = await rankingsService.get(gameId, p);
       setLeaderboard(res.leaderboard);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error al cargar rankings');
@@ -33,9 +57,7 @@ export default function RankingsPage() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchRankings(); }, [period, gameId]);
-
-  const posColor = (pos: number) => pos === 1 ? '#FCD34D' : pos === 2 ? '#9CA3AF' : pos === 3 ? '#D97706' : '#8892A4';
+  const selectedGame = registeredGames.find((g) => g.id === selectedGameId);
 
   return (
     <MainLayout>
@@ -50,48 +72,106 @@ export default function RankingsPage() {
         <div>
           <p style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Período Actual</p>
           <p style={{ fontSize: '12px', color: '#A78BFA', margin: '2px 0 0' }}>
-            Ranking {period === 'quincenal' ? 'Quincenal' : 'Mensual'} — Game ID: {gameId}
+            Ranking {period === 'quincenal' ? 'Quincenal' : 'Mensual'}
+            {selectedGame ? ` — ${selectedGame.name}` : ''}
           </p>
         </div>
       </div>
 
       {/* Controles */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+        {/* Filtro periodo */}
         <div style={{ display: 'flex', gap: '8px' }}>
           {(['quincenal', 'mensual'] as const).map((p) => (
-            <button key={p} onClick={() => setPeriod(p)}
-              style={{ padding: '7px 16px', borderRadius: '20px', border: `1px solid ${period === p ? '#7C3AED' : '#1E2540'}`, backgroundColor: period === p ? '#7C3AED' : 'transparent', color: period === p ? '#FFFFFF' : '#8892A4', fontSize: '12px', cursor: 'pointer', textTransform: 'capitalize' }}>
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              style={{
+                padding: '7px 16px', borderRadius: '20px',
+                border: `1px solid ${period === p ? '#7C3AED' : '#1E2540'}`,
+                backgroundColor: period === p ? '#7C3AED' : 'transparent',
+                color: period === p ? '#FFFFFF' : '#8892A4',
+                fontSize: '12px', cursor: 'pointer',
+              }}
+            >
               {p.charAt(0).toUpperCase() + p.slice(1)}
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label style={{ fontSize: '12px', color: '#8892A4' }}>Game ID:</label>
-          <input value={gameId} onChange={(e) => setGameId(e.target.value)} type="number" min="1"
-            style={{ width: '70px', backgroundColor: '#161B2E', border: '1px solid #1E2540', borderRadius: '8px', padding: '7px 10px', color: '#E2E8F0', fontSize: '12px' }} />
-          <button onClick={fetchRankings} style={{ padding: '7px 14px', backgroundColor: '#7C3AED', border: 'none', borderRadius: '8px', color: '#FFFFFF', fontSize: '12px', cursor: 'pointer' }}>Cargar</button>
-        </div>
+
+        {/* Selector de juego */}
+        {registeredGames.length === 0 ? (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            backgroundColor: '#FCD34D11', border: '1px solid #FCD34D33',
+            borderRadius: '8px', padding: '8px 14px', fontSize: '12px', color: '#FCD34D',
+          }}>
+            <Gamepad2 size={14} />
+            No tienes juegos registrados. Ve a{' '}
+            <a href="/juegos" style={{ color: '#A78BFA', textDecoration: 'underline' }}>Juegos</a>{' '}
+            para agregar uno.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Gamepad2 size={15} color="#8892A4" />
+            <select
+              value={selectedGameId ?? ''}
+              onChange={(e) => setSelectedGameId(Number(e.target.value))}
+              style={{
+                backgroundColor: '#161B2E', border: '1px solid #1E2540',
+                borderRadius: '8px', padding: '7px 12px',
+                color: '#E2E8F0', fontSize: '13px', cursor: 'pointer',
+                minWidth: '180px',
+              }}
+            >
+              {registeredGames.map((g) => (
+                <option key={g.id} value={g.id}>{g.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Tabla */}
       <div style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr 120px 100px 80px', padding: '12px 20px', backgroundColor: '#161B2E', fontSize: '11px', fontWeight: '600', color: '#8892A4' }}>
+        <div style={{
+          display: 'grid', gridTemplateColumns: '70px 1fr 120px 100px 80px',
+          padding: '12px 20px', backgroundColor: '#161B2E',
+          fontSize: '11px', fontWeight: '600', color: '#8892A4',
+        }}>
           <span>Posición</span><span>Jugador</span><span>Puntos</span><span>V / D</span><span>Partidas</span>
         </div>
 
-        {loading && <p style={{ color: '#8892A4', textAlign: 'center', padding: '32px' }}>Cargando...</p>}
-        {error   && <p style={{ color: '#F87171', textAlign: 'center', padding: '32px', fontSize: '13px' }}>{error}</p>}
+        {loading && (
+          <p style={{ color: '#8892A4', textAlign: 'center', padding: '32px' }}>Cargando...</p>
+        )}
+
+        {error && (
+          <p style={{ color: '#F87171', textAlign: 'center', padding: '32px', fontSize: '13px' }}>{error}</p>
+        )}
 
         {!loading && !error && leaderboard.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px', color: '#8892A4' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}><BarChart2 size={36} color="#4B5563" /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+              <BarChart2 size={36} color="#4B5563" />
+            </div>
             <p>No hay datos de ranking para este juego y período</p>
           </div>
         )}
 
         {leaderboard.map((entry, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '70px 1fr 120px 100px 80px', padding: '14px 20px', borderTop: '1px solid #1E2540', alignItems: 'center', backgroundColor: entry.live_position <= 3 ? '#7C3AED08' : 'transparent' }}>
-            <span style={{ fontWeight: '800', color: posColor(entry.live_position), fontSize: '14px', display: 'flex', alignItems: 'center' }}>{medal(entry.live_position)}</span>
+          <div
+            key={i}
+            style={{
+              display: 'grid', gridTemplateColumns: '70px 1fr 120px 100px 80px',
+              padding: '14px 20px', borderTop: '1px solid #1E2540',
+              alignItems: 'center',
+              backgroundColor: entry.live_position <= 3 ? '#7C3AED08' : 'transparent',
+            }}
+          >
+            <span style={{ fontWeight: '800', color: posColor(entry.live_position), fontSize: '14px', display: 'flex', alignItems: 'center' }}>
+              {medal(entry.live_position)}
+            </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: '#FFFFFF' }}>
                 {entry.player_name.charAt(0).toUpperCase()}
