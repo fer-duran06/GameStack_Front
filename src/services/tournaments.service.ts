@@ -19,9 +19,28 @@ interface LeaveResponse {
   message: string;
 }
 
-interface BracketResponse {
+interface StatusResponse {
   message: string;
-  total_matches_created: number;
+  tournament?: Tournament;
+}
+
+interface BracketMatch {
+  id: number;
+  round: number;
+  status: string;
+  participant1_id?: number;
+  participant2_id?: number;
+  participant1_name?: string;
+  participant2_name?: string;
+  winner_id?: number;
+  winner_name?: string;
+}
+
+export interface BracketResponse {
+  message: string;
+  total_matches_created?: number;
+  matches?: BracketMatch[];
+  bracket?: BracketMatch[];
 }
 
 export const tournamentsService = {
@@ -40,6 +59,19 @@ export const tournamentsService = {
   leave: (tournamentId: number): Promise<LeaveResponse> =>
     api.post<LeaveResponse>(`/api/v1/tournaments/${tournamentId}/leave`, {}, true),
 
+  // Iniciar torneo (registration → active)
+  start: (tournamentId: number): Promise<StatusResponse> =>
+    api.post<StatusResponse>(`/api/v1/tournaments/${tournamentId}/start`, {}, true),
+
+  // Finalizar torneo (active → finished)
+  finish: (tournamentId: number): Promise<StatusResponse> =>
+    api.post<StatusResponse>(`/api/v1/tournaments/${tournamentId}/finish`, {}, true),
+
+  // Generar bracket y obtener partidas
   generateBracket: (tournamentId: number): Promise<BracketResponse> =>
     api.post<BracketResponse>(`/api/v1/tournaments/${tournamentId}/generate-bracket`, {}, true),
+
+  // Obtener bracket ya generado
+  getBracket: (tournamentId: number): Promise<BracketResponse> =>
+    api.get<BracketResponse>(`/api/v1/tournaments/${tournamentId}/bracket`, true),
 };
