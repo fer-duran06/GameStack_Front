@@ -58,7 +58,6 @@ export default function TipsPage() {
         list.map((t) => t.id === tipId ? { ...t, likes_count: t.likes_count + delta } : t);
       setCommunityTips((prev) => update(prev));
       setMyTips((prev) => update(prev));
-      // actualizar también el modal si está abierto
       setSelectedTip((prev) =>
         prev?.id === tipId ? { ...prev, likes_count: prev.likes_count + delta } : prev,
       );
@@ -74,23 +73,18 @@ export default function TipsPage() {
     } catch { return dateStr; }
   };
 
-  /* ── Card reutilizable ── */
   const TipCard = ({ tip, isMine = false }: { tip: Tip; isMine?: boolean }) => (
     <div style={{
       backgroundColor: '#0F1424',
       border: `1px solid ${isMine ? '#7C3AED44' : '#1E2540'}`,
-      borderRadius: '12px',
-      padding: '18px',
-      display: 'flex',
-      flexDirection: 'column',
+      borderRadius: '12px', padding: '18px',
+      display: 'flex', flexDirection: 'column',
     }}>
-      {/* Cabecera */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {!isMine && (
             <div style={{
-              width: '32px', height: '32px', borderRadius: '50%',
-              backgroundColor: '#7C3AED',
+              width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#7C3AED',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '12px', fontWeight: '700', color: '#FFFFFF', flexShrink: 0,
             }}>
@@ -120,20 +114,16 @@ export default function TipsPage() {
         )}
       </div>
 
-      {/* Título */}
       <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#FFFFFF', marginBottom: '8px' }}>{tip.title}</h3>
 
-      {/* Contenido truncado */}
       <p style={{
         fontSize: '12px', color: '#8892A4', lineHeight: 1.6, marginBottom: '12px',
         overflow: 'hidden', display: '-webkit-box',
-        WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
-        flex: 1,
+        WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', flex: 1,
       }}>
         {tip.content}
       </p>
 
-      {/* Footer: like + ver más */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         borderTop: '1px solid #1E2540', paddingTop: '10px', marginTop: 'auto',
@@ -145,13 +135,12 @@ export default function TipsPage() {
             display: 'flex', alignItems: 'center', gap: '6px',
             background: 'none', border: 'none', padding: 0,
             color: likingId === tip.id ? '#A78BFA' : '#8892A4',
-            cursor: 'pointer', fontSize: '12px', transition: 'color 0.15s',
+            cursor: 'pointer', fontSize: '12px',
           }}
         >
           <ThumbsUp size={13} />
           <span>{tip.likes_count}</span>
         </button>
-
         <button
           onClick={() => setSelectedTip(tip)}
           style={{
@@ -168,7 +157,6 @@ export default function TipsPage() {
 
   return (
     <MainLayout>
-      {/* ── Encabezado ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#FFFFFF', marginBottom: '4px' }}>Tips & Estrategias</h1>
@@ -179,7 +167,7 @@ export default function TipsPage() {
         </Link>
       </div>
 
-      {/* ── Mis tips ── */}
+      {/* Mis tips */}
       {loadingMy ? (
         <p style={{ color: '#8892A4', textAlign: 'center', padding: '32px' }}>Cargando mis tips...</p>
       ) : myTips.length > 0 && (
@@ -193,13 +181,12 @@ export default function TipsPage() {
         </div>
       )}
 
-      {/* ── Tips de la comunidad ── */}
+      {/* Comunidad */}
       <div>
         <p style={{ fontSize: '13px', fontWeight: '600', color: '#8892A4', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Globe size={13} /> Tips de la comunidad
         </p>
 
-        {/* Filtros */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
           {[
             { k: 'todos',      l: 'Todos' },
@@ -238,9 +225,7 @@ export default function TipsPage() {
         )}
       </div>
 
-      {/* ══════════════════════════════════════════
-          MODAL VER MÁS
-      ══════════════════════════════════════════ */}
+      {/* Modal Ver más */}
       {selectedTip && (
         <div
           onClick={() => setSelectedTip(null)}
@@ -259,16 +244,13 @@ export default function TipsPage() {
               display: 'flex', flexDirection: 'column',
             }}
           >
-            {/* Header */}
             <div style={{
               padding: '20px 24px', borderBottom: '1px solid #1E2540',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              flexShrink: 0,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{
-                  width: '38px', height: '38px', borderRadius: '50%',
-                  backgroundColor: '#7C3AED',
+                  width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#7C3AED',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '14px', fontWeight: '700', color: '#FFFFFF', flexShrink: 0,
                 }}>
@@ -291,10 +273,7 @@ export default function TipsPage() {
               </button>
             </div>
 
-            {/* Body scrollable */}
             <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-
-              {/* Categoría + fecha */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
                 {selectedTip.category && (
                   <span style={{
@@ -306,33 +285,23 @@ export default function TipsPage() {
                     {selectedTip.category.charAt(0).toUpperCase() + selectedTip.category.slice(1)}
                   </span>
                 )}
-                <span style={{ fontSize: '11px', color: '#8892A4' }}>
-                  {formatDate(selectedTip.created_at)}
-                </span>
+                <span style={{ fontSize: '11px', color: '#8892A4' }}>{formatDate(selectedTip.created_at)}</span>
               </div>
 
-              {/* Título */}
               <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#FFFFFF', marginBottom: '16px', lineHeight: 1.3 }}>
                 {selectedTip.title}
               </h2>
 
-              {/* Contenido completo */}
-              <p style={{
-                fontSize: '14px', color: '#CBD5E1', lineHeight: 1.8,
-                marginBottom: '20px', whiteSpace: 'pre-wrap',
-              }}>
+              <p style={{ fontSize: '14px', color: '#CBD5E1', lineHeight: 1.8, marginBottom: '20px', whiteSpace: 'pre-wrap' }}>
                 {selectedTip.content}
               </p>
 
-              {/* Build si existe */}
               {selectedTip.build && (
                 <div style={{
                   backgroundColor: '#161B2E', border: '1px solid #7C3AED44',
                   borderRadius: '10px', padding: '16px', marginBottom: '20px',
                 }}>
-                  <p style={{ fontSize: '12px', fontWeight: '700', color: '#A78BFA', marginBottom: '12px' }}>
-                    🎮 Build de campeón
-                  </p>
+                  <p style={{ fontSize: '12px', fontWeight: '700', color: '#A78BFA', marginBottom: '12px' }}>🎮 Build de campeón</p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <div style={{ backgroundColor: '#0F1424', borderRadius: '8px', padding: '10px 12px' }}>
                       <p style={{ fontSize: '11px', color: '#8892A4', margin: '0 0 4px' }}>Campeón</p>
@@ -354,7 +323,6 @@ export default function TipsPage() {
                 </div>
               )}
 
-              {/* Like dentro del modal */}
               <div style={{ borderTop: '1px solid #1E2540', paddingTop: '16px' }}>
                 <button
                   onClick={() => handleLike(selectedTip.id)}
@@ -364,7 +332,7 @@ export default function TipsPage() {
                     background: 'none', border: '1px solid #1E2540',
                     borderRadius: '8px', padding: '8px 16px',
                     color: likingId === selectedTip.id ? '#A78BFA' : '#8892A4',
-                    cursor: 'pointer', fontSize: '13px', transition: 'color 0.15s',
+                    cursor: 'pointer', fontSize: '13px',
                   }}
                 >
                   <ThumbsUp size={14} />

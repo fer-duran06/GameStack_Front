@@ -13,11 +13,11 @@ interface RegisteredGame {
 }
 
 export default function JuegosPage() {
-  const [query, setQuery]         = useState('');
-  const [results, setResults]     = useState<RAWGGame[]>([]);
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState('');
-  const [searched, setSearched]   = useState(false);
+  const [query, setQuery]       = useState('');
+  const [results, setResults]   = useState<RAWGGame[]>([]);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
+  const [searched, setSearched] = useState(false);
   const [registeredGames, setRegisteredGames] = useState<RegisteredGame[]>([]);
 
   useEffect(() => {
@@ -76,23 +76,31 @@ export default function JuegosPage() {
         <p style={{ fontSize: '14px', color: '#8892A4' }}>Explora y gestiona todos los juegos disponibles</p>
       </div>
 
-      {/* ── Buscador siempre visible ── */}
+      {/* Buscador */}
       <div style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
         <p style={{ fontSize: '13px', color: '#8892A4', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Search size={13} /> Busca un juego en RAWG y regístralo en la plataforma
         </p>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <input value={query} onChange={(e) => setQuery(e.target.value)}
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Buscar juegos... (ej: League of Legends)"
-            style={{ flex: 1, backgroundColor: '#161B2E', border: '1.5px solid #1E2540', borderRadius: '8px', padding: '10px 14px', color: '#E2E8F0', fontSize: '13px' }} />
-          <button onClick={handleSearch} disabled={loading}
-            style={{ padding: '10px 20px', backgroundColor: '#7C3AED', border: 'none', borderRadius: '8px', color: '#FFFFFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+            style={{ flex: 1, backgroundColor: '#161B2E', border: '1.5px solid #1E2540', borderRadius: '8px', padding: '10px 14px', color: '#E2E8F0', fontSize: '13px' }}
+          />
+          <button
+            onClick={handleSearch}
+            disabled={loading}
+            style={{ padding: '10px 20px', backgroundColor: '#7C3AED', border: 'none', borderRadius: '8px', color: '#FFFFFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+          >
             {loading ? 'Buscando...' : 'Buscar'}
           </button>
           {searched && (
-            <button onClick={handleClearSearch}
-              style={{ padding: '10px 16px', backgroundColor: 'transparent', border: '1px solid #1E2540', borderRadius: '8px', color: '#8892A4', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={handleClearSearch}
+              style={{ padding: '10px 16px', backgroundColor: 'transparent', border: '1px solid #1E2540', borderRadius: '8px', color: '#8892A4', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
               <X size={14} /> Limpiar
             </button>
           )}
@@ -100,7 +108,7 @@ export default function JuegosPage() {
         {error && <p style={{ marginTop: '10px', fontSize: '12px', color: '#F87171' }}>{error}</p>}
       </div>
 
-      {/* ── Resultados de búsqueda ── */}
+      {/* Resultados de búsqueda */}
       {searched && (
         <>
           <p style={{ fontSize: '13px', color: '#8892A4', marginBottom: '14px' }}>
@@ -121,21 +129,36 @@ export default function JuegosPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
               {results.map((game) => {
                 const already = registeredNames.has(game.name);
-                const registeredId = registeredGames.find((g) => g.name === game.name)?.id;
                 return (
-                  <div key={game.rawg_id} style={{ backgroundColor: '#0F1424', border: `1px solid ${already ? '#16a34a' : '#1E2540'}`, borderRadius: '12px', overflow: 'hidden' }}>
-                    <div style={{ height: '140px', backgroundImage: game.image_url ? `url(${game.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#161B2E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div
+                    key={game.rawg_id}
+                    style={{ backgroundColor: '#0F1424', border: `1px solid ${already ? '#16a34a' : '#1E2540'}`, borderRadius: '12px', overflow: 'hidden' }}
+                  >
+                    <div style={{
+                      height: '140px',
+                      backgroundImage: game.image_url ? `url(${game.image_url})` : 'none',
+                      backgroundSize: 'cover', backgroundPosition: 'center',
+                      backgroundColor: '#161B2E',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
                       {!game.image_url && <Gamepad2 size={36} color="#4B5563" />}
                     </div>
                     <div style={{ padding: '14px' }}>
                       <p style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', marginBottom: '12px' }}>{game.name}</p>
                       {already ? (
-                        <div style={{ width: '100%', padding: '8px 0', backgroundColor: '#16a34a22', border: '1px solid #16a34a', borderRadius: '8px', color: '#4ADE80', fontSize: '12px', fontWeight: '600', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                          <Check size={13} /> Ya registrado — ID: {registeredId}
+                        <div style={{
+                          width: '100%', padding: '8px 0',
+                          backgroundColor: '#16a34a22', border: '1px solid #16a34a',
+                          borderRadius: '8px', color: '#4ADE80', fontSize: '12px', fontWeight: '600',
+                          textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                        }}>
+                          <Check size={13} /> Ya registrado
                         </div>
                       ) : (
-                        <button onClick={() => handleRegister(game)}
-                          style={{ width: '100%', padding: '8px 0', backgroundColor: '#7C3AED', border: 'none', borderRadius: '8px', color: '#FFFFFF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                        <button
+                          onClick={() => handleRegister(game)}
+                          style={{ width: '100%', padding: '8px 0', backgroundColor: '#7C3AED', border: 'none', borderRadius: '8px', color: '#FFFFFF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                        >
                           + Registrar en plataforma
                         </button>
                       )}
@@ -148,7 +171,7 @@ export default function JuegosPage() {
         </>
       )}
 
-      {/* ── Mis juegos registrados ── */}
+      {/* Mis juegos registrados */}
       {!searched && (
         <>
           {registeredGames.length === 0 ? (
@@ -165,21 +188,23 @@ export default function JuegosPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
                 {registeredGames.map((game) => (
                   <div key={game.id} style={{ backgroundColor: '#0F1424', border: '1px solid #1E2540', borderRadius: '12px', overflow: 'hidden' }}>
-                    <div style={{ height: '140px', backgroundImage: game.image_url ? `url(${game.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#161B2E', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                    <div style={{
+                      height: '140px',
+                      backgroundImage: game.image_url ? `url(${game.image_url})` : 'none',
+                      backgroundSize: 'cover', backgroundPosition: 'center',
+                      backgroundColor: '#161B2E',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
                       {!game.image_url && <Gamepad2 size={36} color="#4B5563" />}
-                      <span style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#7C3AED', color: '#FFFFFF', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' }}>
-                        ID: {game.id}
-                      </span>
                     </div>
                     <div style={{ padding: '14px' }}>
                       <p style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', marginBottom: '8px' }}>{game.name}</p>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', color: '#8892A4' }}>
-                          Usa ID <span style={{ color: '#A78BFA', fontWeight: '700' }}>{game.id}</span> en partidas y torneos
-                        </span>
-                        <button onClick={() => handleRemove(game.id)}
-                          style={{ background: 'none', border: 'none', color: '#F87171', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                          <X size={14} />
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={() => handleRemove(game.id)}
+                          style={{ background: 'none', border: 'none', color: '#F87171', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          <X size={14} /> Eliminar
                         </button>
                       </div>
                     </div>
